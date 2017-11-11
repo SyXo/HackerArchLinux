@@ -1,0 +1,156 @@
+############################################################
+############################################################
+###                              COLORS
+#___________________________________________________________
+#       name								hex-code
+set $x_Black									#000000
+set $x_White									#ffffff
+set $x_GhostWhite								#f8f8ff
+set $x_Ivory1									#fffff0
+set $x_Ivory2									#eeeee0
+set $x_Ivory3									#cdcdc1
+set $x_Ivory4									#8b8b83
+set $x_Khaki									#f0e68c
+set $x_Khaki1									#fff68f
+set $x_Khaki2									#eee685
+set $x_Khaki3									#cdc673
+set $x_Khaki4									#8b864e
+set $x_Gray20									#333333
+set $x_Gray21									#363636
+set $x_Gray22									#383838
+set $x_Gray23									#3b3b3b
+set $x_Gray24									#3d3d3d
+set $x_Gray25									#404040
+set $x_Gray26									#424242
+set $x_Gray27									#454545
+set $x_Gray28									#474747
+set $x_Gray29									#4a4a4a
+set $x_Gray30									#4d4d4d
+set $x_Gray31									#4f4f4f
+set $x_Gray32									#525252
+set $x_Gray33									#545454
+set $x_Gray34									#575757
+set $x_Gray35									#595959
+set $x_Gray36									#5c5c5c
+set $x_Gray37									#5e5e5e
+set $x_Gray38									#616161
+set $x_Gray39									#636363
+set $x_Gray40									#666666
+set $x_Gray41									#696969
+set $x_Gray42									#6b6b6b
+set $x_Gray43									#6e6e6e
+set $x_Gray44									#707070
+set $x_Gray45									#737373
+set $x_Gray46									#757575
+set $x_Gray47									#787878
+set $x_Gray48									#7a7a7a
+set $x_Gray49									#7d7d7d
+set $x_Gray50									#7f7f7f
+set $x_Gray51									#828282
+set $x_Gray52									#858585
+set $x_Gray53									#878787
+set $x_Gray54									#8a8a8a
+set $x_Gray55									#8c8c8c
+set $x_Gray56									#8f8f8f
+set $x_Gray57									#919191
+set $x_Gray58									#949494
+set $x_Gray59									#969696
+set $x_Gray60									#999999
+set $x_Gray61									#9c9c9c
+set $x_Gray62									#9e9e9e
+set $x_Gray63									#a1a1a1
+set $x_Gray64									#a3a3a3
+set $x_Gray65									#a6a6a6
+set $x_Gray66									#a8a8a8
+set $x_Gray67									#ababab
+set $x_Gray68									#adadad
+set $x_Gray69									#b0b0b0
+set $x_Gray70									#b3b3b3
+set $x_Gray71									#b5b5b5
+set $x_Gray72									#b8b8b8
+set $x_Gray73									#bababa
+set $x_Gray74									#bdbdbd
+set $x_Gray75									#bfbfbf
+set $x_Gray76									#c2c2c2
+set $x_Gray77									#c4c4c4
+set $x_Gray78									#c7c7c7
+set $x_Gray79									#c9c9c9
+set $x_Gray80									#cccccc
+set $x_Gray81									#cfcfcf
+set $x_Gray82									#d1d1d1
+set $x_Gray83									#d4d4d4
+set $x_Gray84									#d6d6d6
+set $x_Gray85									#d9d9d9
+set $x_Gray86									#dbdbdb
+set $x_Gray87									#dedede
+set $x_Gray88									#e0e0e0
+set $x_Gray89									#e3e3e3
+set $x_Gray90									#e5e5e5
+set $x_Gray91									#e8e8e8
+set $x_Gray92									#ebebeb
+set $x_Gray93									#ededed
+set $x_Gray94									#f0f0f0
+set $x_Gray95									#f2f2f2
+set $x_Gray97									#f7f7f7
+set $x_Gray98									#fafafa
+set $x_Gray99									#fcfcfc
+set $x_DarkSalmon								#e9967a
+set $x_DeepSkyBlue1								#00bfff
+set $x_DeepSkyBlue2								#00b2ee
+set $x_DeepSkyBlue3								#009acd
+set $x_DeepSkyBlue4								#00688b
+set $x_DodgerBlue1								#1e90ff
+set $x_DodgerBlue2								#1c86ee
+set $x_DodgerBlue3								#1874cd
+set $x_DodgerBlue4								#104e8b
+set $x_PowderBlue								#b0e0e6
+set $x_FireBrick								#b22222
+set $x_FireBrick1								#ff3030
+set $x_FireBrick2								#ee2c2c
+set $x_FireBrick3								#cd2626
+set $x_FireBrick4								#8b1a1a
+set $x_Goldenrod								#daa520
+set $x_Goldenrod1								#ffc125
+set $x_Goldenrod2								#eeb422
+set $x_Goldenrod3								#cd9b1d
+set $x_Goldenrod4								#8b6914
+#______________________________________________________ set variables
+set $c.bg						"#00000"
+
+set $c.focused.border 			"#e9967a"
+set $c.focused.bg 				"#000000"
+set $c.focused.txt				"#fffff0"
+set $c.focused.ind				"#cdc673"
+
+set $c.unfocused.border			$x_Gray60
+set $c.unfocused.bg				$x_Black
+set $c.unfocused.txt			$x_GhostWhite
+set $c.unfocused.ind			$x_DarkSalmon
+
+set $c.inactive.border			$x_Gray60
+set $c.inactive.bg				$x_Black
+set $c.inactive.txt				$x_GhostWhite
+set $c.inactive.ind				$x_DarkSalmon
+
+set $c.urgent.border			$x_FireBrick
+set $c.urgent.bg				$x_Black
+set $c.urgent.txt				$x_White
+set $c.urgent.ind				$x_Goldenrod3
+
+set $ws.focused.bg				$x_Black
+set $ws.focused.txt				$x_Ivory1
+set $ws.focused.border			$x_DarkSalmon
+
+set $ws.active.bg				"#000000"
+set $ws.active.txt				"#fffff0"
+set $ws.active.border			"#e9967a"
+
+set $ws.inactive.bg				$x_Black
+set $ws.inactive.txt			$x_GhostWhite
+set $ws.inactive.border			$x_Gray60
+
+set $ws.urgent.bg				$x_Black
+set $ws.urgent.txt				$x_White
+set $ws.urgent.border			$x_FireBrick
+
+

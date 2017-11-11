@@ -1,0 +1,42 @@
+{
+	"icons": [ "awesome-fonts" ],
+	"defaults": {
+		"fg": "#FFFFFF",
+		"separator-block-width": 0,
+		"warning": {
+			"fg": "#002b36",
+			"bg": "#b58900"
+		},
+		"critical": {
+			"fg": "#002b36",
+			"bg": "#dc322f"
+		}
+	},
+	"cycle": [
+		{ "fg": "#FFFFFF", "bg": "#002b36" },
+		{ "fg": "#FFFFFF", "bg": "#586e75" }
+	],
+	"dnf": {
+		"good": {
+			"fg": "#002b36",
+			"bg": "#859900"
+		}
+	},
+	"pacman": {
+		"good": {
+			"fg": "#002b36",
+			"bg": "#859900"
+		}
+	},
+	"battery": {
+		"charged": {
+			"fg": "#002b36",
+			"bg": "#859900"
+		},
+		"AC": {
+			"fg": "#002b36",
+			"bg": "#859900"
+		}
+	},
+	"spacer": { "bg": "#000000" }
+}

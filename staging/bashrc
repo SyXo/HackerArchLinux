@@ -1,0 +1,152 @@
+#
+# ~/.bashrc
+#
+
+[[ $- != *i* ]] && return
+
+[[ -f ~/.extend.bashrc ]] && source ~/.extend.bashrc
+
+#for file in `ls '/usr/share/bash-completion/completions/'`
+#    source $file
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=99900
+HISTFILESIZE=200000
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+use_color=true
+
+# colored GCC warnings and errors
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+#-------------------------------------------------------------
+# The 'ls' family (this assumes you use a recent GNU ls).
+#-------------------------------------------------------------
+# Add colors for filetype and  human-readable sizes by default on 'ls':
+alias ls='ls -h --color'
+alias lx='ls -lXB'              #  Sort by extension.
+alias lsSize='ls -lSr'          #  Sort by size, biggest last.
+alias lsDate='ls -ltr'          #  Sort by date, most recent last.
+alias lsTime='ls -ltcr'         #  Sort by/show change time,most recent last.
+alias lsAccess='ls -ltur'       #  Sort by/show access time,most recent last.
+
+# The ubiquitous 'll': directories first, with alphanumeric sorting:
+alias ll="ls -lv --group-directories-first"
+alias lm='ll |more'        #  Pipe through 'more'
+alias lr='ll -R'           #  Recursive ls.
+alias la='ll -A'           #  Show hidden files.
+
+alias ..='cd ..'
+
+#-------------------------------------------------------------
+# Tailoring 'less'
+#-------------------------------------------------------------
+alias more='less'
+export PAGER=less
+export LESSCHARSET='latin1'
+export LESSOPEN='|/usr/bin/lesspipe.sh %s 2>&-'
+                # Use this if lesspipe.sh exists.
+export LESS='-i -N -w  -z-4 -g -e -M -X -F -R -P%t?f%f :stdin .?pb%pb\%:?lbLine %lb:?bbByte %bb:-...'
+
+# LESS man page colors (makes Man pages more readable).
+export LESS_TERMCAP_mb=$'\E[01;31m'
+export LESS_TERMCAP_md=$'\E[01;31m'
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_se=$'\E[0m'
+export LESS_TERMCAP_so=$'\E[01;44;33m'
+export LESS_TERMCAP_ue=$'\E[0m'
+export LESS_TERMCAP_us=$'\E[01;32m'
+
+# make 'less' more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+        color_prompt=yes
+    else
+        color_prompt=no
+    fi
+fi
+
+if [ ! -z ${SSH_TTY} ]; then
+    host=${SSH_CLIENT}
+else
+    host=""
+fi
+
+# $1: compare_value
+function histAwk()
+{
+    if [[ $# != 1 ]] ; then
+      echo 'Parameters dont match to the function'
+    fi
+
+    awk -F ":" '{ if ($2 > '$1') print $3 }' ~/.zhistory
+}
+
+function extract()
+{
+    if [ -f $1 ] ; then
+        case $1 in
+            *.tar)          tar xvf $1                      ;;
+            *.tar.bz)       bzip2 -cd $1 | tar xvf -        ;;
+            *.tar.bz2)      tar xvjf $1                     ;;
+            *.tar.gz)       tar xvzf $1                     ;;
+            *.tbz2)         tar xvjf $1                     ;;
+            *.tgz)          tar xvzf $1                     ;;
+            *.bz2)          bzip2 $1                        ;;
+            *.rar)          unrar x $1                      ;;
+            *.zip)          unzip $1                        ;;
+            *.7z)           7z x $1                         ;;
+            *)           echo "'$1' cannot be extracted via >extract<" ;;
+        esac
+    else
+        echo "'$1' is not a valid file!"
+    fi
+}
+
+
+function md()
+{
+    if [[ $# == 1 ]] ; then
+        if [[ -d "$1" ]] ; then
+          echo 'Already an existing directory.'
+        elif [[ -f "$1" ]] ; then
+          echo 'Already an existing file.'
+        fi
+
+        mkdir -p $1
+        if [[ $? -ne 0 ]] ; then
+            echo 'Cannot create multiple folders.'
+        fi
+        cd "$1"
+    else
+        echo 'ERROR! Cannot process mkdir request.'
+    fi
+}
+
+## starting block << \[\033 >>
+## -- BACKGROUND CODE 48
+## -- FOREGROUND CODE 38
+## -- SET USING R-G-B : CODE 2
+## ending block << \] >>
+## -- reset block << \[\033[00m\] >>

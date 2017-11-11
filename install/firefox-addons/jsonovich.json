@@ -1,0 +1,30 @@
+{
+	"mimetypes": {
+		"application/json": "json",
+		"application/sparql-results+json": "json",
+		"application/schema+json": "json",
+		"application/jsonrequest": "json",
+		"application/x-json": "json",
+		"text/json": "json",
+		"text/x-json": "json",
+		"application/rdf+json": "json",
+		"application/jsonml+json": "json",
+		"application/manifest+json": "json",
+		"application/json-p": "json",
+		"text/json-p": "json",
+		"application/javascript": "json",
+		"application/ecmascript": "json",
+		"text/javascript": "json",
+		"text/ecmascript": "json",
+		"application/x-javascript": "json",
+		"application/x-ecmascript": "json",
+		"text/x-javascript": "json",
+		"text/x-ecmascript": "json"
+	},
+	"extensions": {
+		"json": "js",
+		"srj": "js"
+	},
+	"accept": {},
+	"debug": false
+}

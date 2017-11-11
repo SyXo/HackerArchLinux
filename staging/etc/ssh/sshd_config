@@ -1,0 +1,113 @@
+###############################################################################
+#                                                                             #
+#                    SYSTEM WIDE SSHD CONFIG                                  #
+###############################################################################
+# If you want to change the port on a SELinux system, you have to tell
+# SELinux about this change.
+# semanage port -a -t ssh_port_t -p tcp #PORTNUMBER
+#
+Port 22
+
+Protocol 2
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+GatewayPorts no
+LoginGraceTime 180
+KeepAlive yes
+
+# Logging
+SyslogFacility AUTHPRIV
+LogLevel VERBOSE
+
+# Authentication:
+AllowGroups sshusers
+
+#LoginGraceTime 2m
+PermitRootLogin yes
+StrictModes yes
+MaxAuthTries 3
+MaxSessions 4
+
+PubkeyAuthentication no
+#_____________________________________________________________________________ DEFAULT files
+#        .ssh/authorized_keys       &&     .ssh/authorized_keys2
+#_____________________________________________________________________________
+AuthorizedKeysFile .ssh/authorized_keys
+
+#AuthorizedPrincipalsFile none
+
+#AuthorizedKeysCommand none
+#AuthorizedKeysCommandUser nobody
+
+# For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
+HostbasedAuthentication no
+
+IgnoreUserKnownHosts no
+# Don't read the user's ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+
+# To disable tunneled clear text passwords, change to no here!
+PermitEmptyPasswords no
+PasswordAuthentication no
+
+# Change to no to disable s/key passwords
+ChallengeResponseAuthentication yes
+
+#------------------- Kerberos options
+KerberosAuthentication no
+#KerberosOrLocalPasswd yes
+#KerberosTicketCleanup yes
+#KerberosGetAFSToken no
+#KerberosUseKuserok yes
+
+#------------------- GSSAPI options
+GSSAPIAuthentication no
+#GSSAPICleanupCredentials yes
+#GSSAPIStrictAcceptorCheck yes
+#GSSAPIKeyExchange no
+#GSSAPIEnablek5users no
+
+UsePAM yes
+
+AllowAgentForwarding yes
+# AllowTcpForwarding yes
+# GatewayPorts no
+X11Forwarding yes
+# X11DisplayOffset 10
+# X11UseLocalhost yes
+# PermitTTY yes
+PrintMotd yes
+PrintLastLog yes
+# TCPKeepAlive yes
+# PermitUserEnvironment no
+Compression delayed
+# ClientAliveInterval 0
+# ClientAliveCountMax 3
+# ShowPatchLevel no
+UseDNS no
+# PidFile /var/run/sshd.pid
+# MaxStartups 10:30:100
+# PermitTunnel no
+# ChrootDirectory none
+# VersionAddendum none
+
+# no default banner path
+Banner /etc/issue
+
+# Accept locale-related environment variables
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+
+# override default of no subsystems
+Subsystem	sftp	/usr/libexec/openssh/sftp-server
+
+ClientAliveInterval 60
+ClientAliveCountMax 5
+
+Ciphers            chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr
+HostKeyAlgorithms  ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,ssh-rsa
+KexAlgorithms      ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,ssh-rsa
+MACs               hmac-sha2-256,hmac-sha2-512,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,umac-128@openssh.com

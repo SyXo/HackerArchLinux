@@ -1,0 +1,103 @@
+#
+# User configuration sourced by interactive shells
+#
+
+# Source zim
+if [[ -s ${ZDOTDIR:-${HOME}}/.zim/init.zsh ]]; then
+  source ${ZDOTDIR:-${HOME}}/.zim/init.zsh
+fi
+
+source /usr/share/zsh-theme-powerlevel9k/powerlevel9k.zsh-theme
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+POWERLEVEL9K_RPROMPT_ON_NEWLINE=true
+POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
+POWERLEVEL9K_ROOT_ICON="⍺"
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir ssh vcs)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status root_indicator background_jobs history time)
+
+eval "$(thefuck --alias)"
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+# -> Prevents accidentally clobbering files.
+alias mkdir='mkdir -p'
+
+# Makes a more readable output.
+alias du='du -kh'
+alias df='df -kTh'
+
+alias ls='ls -h --color'
+alias lx='ls -lXB'              #  Sort by extension.
+alias lsSize='ls -lSr'          #  Sort by size, biggest last.
+alias lsDate='ls -ltr'          #  Sort by date, most recent last.
+alias lsTime='ls -ltcr'         #  Sort by/show change time,most recent last.
+alias lsAccess='ls -ltur'       #  Sort by/show access time,most recent last.
+
+# The ubiquitous 'll': directories first, with alphanumeric sorting:
+alias ll="ls -lv --group-directories-first"
+alias lm='ll |more'        #  Pipe through 'more'
+alias lr='ll -R'           #  Recursive ls.
+alias la='ll -A'           #  Show hidden files.
+
+alias ppi='pacaur -S '
+alias ppu='pacaur -Syu --noedit '
+alias pps='pacaur -Ss '
+alias ppis='sudo pacman -Q | grep '
+alias ppr='sudo pacman -Rns '
+alias ppc='sudo pacman -Rns $(pacman -Qtdq)'
+alias ppR='sudo pacman -Rscn $(pacman -Qtdq) ; sudo pacman -Scc --noconfirm && sudo pacman-optimize && sync && ppu'
+
+alias perlshell='perl -MCPAN -e shell'
+alias serve="python2 -m SimpleHTTPServer 8080"
+
+
+function extract()
+{
+    if [ -f $1 ] ; then
+        case $1 in
+            *.tar)          tar xvf $1                      ;;
+            *.tar.bz)       bzip2 -cd $1 | tar xvf -        ;;
+            *.tar.bz2)      tar xvjf $1                     ;;
+            *.tar.gz)       tar xvzf $1                     ;;
+            *.tbz2)         tar xvjf $1                     ;;
+            *.tgz)          tar xvzf $1                     ;;
+            *.bz2)          bzip2 $1                        ;;
+            *.rar)          unrar x $1                      ;;
+            *.zip)          unzip $1                        ;;
+            *.7z)           7z x $1                         ;;
+            *)           echo "'$1' cannot be extracted via >extract<" ;;
+        esac
+    else
+        echo "'$1' is not a valid file!"
+    fi
+}
+
+
+function md()
+{
+    if [[ $# == 1 ]] ; then
+        if [[ -d "$1" ]] ; then
+          echo 'Already an existing directory.'
+        elif [[ -f "$1" ]] ; then
+          echo 'Already an existing file.'
+        fi
+
+        mkdir -p $1
+        if [[ $? -ne 0 ]] ; then
+            echo 'Cannot create multiple folders.'
+        fi
+        cd "$1"
+    else
+        echo 'ERROR! Cannot process mkdir request.'
+    fi
+}
+
+function compile()
+{
+    nasm -f elf32 $1.asm
+    gcc -m32 $1.o -o $1
+}
+
