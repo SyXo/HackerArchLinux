@@ -43,13 +43,13 @@
 > In order to have this setup fully operational you need to pull out your monitor names:  ```ll /sys/class/drm | awk -F " " '{print $9}' | grep "card" ``` and change out respective lines in ~/.config/i3/config & /etc/lightdm/lightdm.conf
 
 ##### TODO/BUGS:
-> [] Finish automation (install -> extras -> ricing)
-> [] More advanced command output error checking
-> [] Create db for what has successfully run and failed and rerun the necessary parts again automatically without user input.
-> [] Logging output and consolidation of install command output
-> [] ReWrite the Blackarch install script into Perl/Python for error proofing
-> [] Add metasploit , BT3 (BlueTeam Training Toolkit)
-> [] Add auto find monitors and add to lightdm & i3-config
-> [] Clean files and folders created along install process
-> [] Finish auto-ricing ; chown , chmod to home dir
-> [] Add one-time install of zim + vundle inside UI
+> [ ] Finish automation (install -> extras -> ricing)
+> [ ] More advanced command output error checking
+> [ ] Create db for what has successfully run and failed and rerun the necessary parts again automatically without user input.
+> [ ] Logging output and consolidation of install command output
+> [ ] ReWrite the Blackarch install script into Perl/Python for error proofing
+> [ ] Add metasploit , BT3 (BlueTeam Training Toolkit)
+> [ ] Add auto find monitors and add to lightdm & i3-config
+> [ ] Clean files and folders created along install process
+> [ ] Finish auto-ricing ; chown , chmod to home dir
+> [ ] Add one-time install of zim + vundle inside UI
