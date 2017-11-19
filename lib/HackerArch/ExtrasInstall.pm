@@ -4,9 +4,11 @@ use Exporter;
 
 
 package HackerArch::ExtrasInstall;
-use Term::ANSIColor;
 use IO::File;
+use POSIX;
 use Cwd;
+use WWW::Mechanize;
+use LWP::Simple;
 
 our $VERSION = v0.1;
 our @ISA = qw( Exporter );
@@ -21,53 +23,90 @@ sub InitPkgMgrs {
 	HackerArch::FuncHeaders::OperTitle( "Downloading Sublime Text dev keyring and adding to repository list" );
 	system( "curl -O https://download.sublimetext.com/sublimehq-pub.gpg && pacman-key --add sublimehq-pub.gpg && pacman-key --lsign-key 8A8F901A && shred -u sublimehq-pub.gpg" );
 
-	my $FHandle = IO::File->new( "+>> /etc/pacman.conf" );
+	my $FHandle = IO::File->new( ">> /etc/pacman.conf" );
 	if ( defined $FHandle ) {
-		print $FHandle "\n" , "[sublime-text]" , "\n";
+		print $FHandle "\n\n" , "[sublime-text]" , "\n";
 		print $FHandle 'Server = https://download.sublimetext.com/arch/dev/x86_64' , "\n\n";
+
+		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
 
 	HackerArch::FuncHeaders::OperTitle( "Downloading and adding BlackArch repository to local system" );
-	system( "curl -O https://blackarch.org/strap.sh" );
-	system( "chmod u+x strap.sh" );
 
-	$FHandle = IO::File->new( "< strap.sh" );
-	my @lines;
-	if ( defined $FHandle ) {
-		@lines = <$FHandle>;
-		foreach ( @lines ) {
-			if ( /^MIRROR/ ) {
-				$_ = "MIRROR='https://blackarch.tamcore.eu/' ";
+	my $mirror = "https://blackarch.tamcore.eu/";
+
+	my $sysarch = ( POSIX::uname )[4];
+	my $blackarch = "blackarch/os/$sysarch/";
+
+	my $mech = WWW::Mechanize->new();
+
+	HackerArch::FuncHeaders::OperHeading( "Retrieving blackarch package db" );
+	$mech->get( $mirror . $blackarch );
+	if ( $mech->status() == 200 ) {
+		HackerArch::FuncHeaders::SuccessMessage();
+
+		HackerArch::FuncHeaders::OperTitle( "Searching for Blackarch keyring" );
+		my @page_links = $mech->find_all_links( 'text_regex' => qr/^blackarch-keyring(?:.+)/ );
+		my $filename = "";
+		foreach ( @page_links ) {
+			$filename = $_->[0];
+			my $file_dl = get( $mirror . $blackarch . $filename );
+			HackerArch::FuncHeaders::OperHeading( "Saving file to localhost" );
+			$FHandle = IO::File->new( "+> " . getcwd() . "/install/repos/$filename" );
+			if ( defined $FHandle ) {
+				binmode( $FHandle );
+				print $FHandle $file_dl;
+				$FHandle->close;
+				HackerArch::FuncHeaders::SuccessMessage();
 			}
-			if ( /get_mirror$/ ) {
-				$_ = ""
+			else {
+				HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file!" );
 			}
+		}
+
+		HackerArch::FuncHeaders::OperHeading( "Verifying keyring package signature" );
+		system( "gpg --recv-keys 4345771566D76038C7FEB43863EC0ADBEA87E4E3 &>/dev/null" );
+		system( "pacman-key --lsign 4345771566D76038C7FEB43863EC0ADBEA87E4E3 &>/dev/null" );
+		my $verifier = getcwd() . "/install/repos/$filename";
+		my @VerifyOutput = qx(gpg --verify $verifier 2>&1);
+		my $status = 0;
+		for my $line ( @VerifyOutput ) {
+			if ( $line =~ /Good signature/ ) {
+				$status = 1;
+				last;
+			}
+		}
+		if ( $status ) {
+			HackerArch::FuncHeaders::SuccessMessage();
+		}
+		else {
+			HackerArch::FuncHeaders::ErrorOutMessage( 0 , "" );
+		}
+
+		system( "pacman-key --init &>/dev/null " );
+		system( 'pacman --config /dev/null --noconfirm -U $(find ' . getcwd() . '/install -type f -iname "*.pkg.tar.xz")' );
+		if ( "$?" == 0 ) {
+			system( "pacman-key --populate" );
+		}
+		else {
+			HackerArch::FuncHeaders::ErrorOutMessage( 0 , "keyring installation failed!" );
 		}
 	}
 	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
+		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "" );
 	}
-	$FHandle->close;
 
-	$FHandle = IO::File->new( "+> strap.sh" );
+	$FHandle = IO::File->new( ">> /etc/pacman.conf" );
 	if ( defined $FHandle ) {
-		foreach ( @lines ) {
-			chomp( $_ );
-			print $FHandle $_ , "\n";
-		}
+		print $FHandle "[blackarch]" , "\n";
+		print $FHandle "Server = $mirror" . $blackarch;
 	}
-	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
-	}
-	$FHandle->close;
 
-	`sh strap.sh`;
-	`shred -u strap.sh`;
-	HackerArch::FuncHeaders::CheckReturn( 0 , "FAILED to add Sublime Text and/or BlackArch to local system." );
+	system( "pacman -Syy" );
 }
 
 sub ExtraPkgs {
@@ -76,7 +115,7 @@ sub ExtraPkgs {
 	my $NetworkHacking = "burpsuite wireshark-gtk jdk8-openjdk jre8-openjdk-headless wxhexeditor nmap ssldump ";
 	my $BreakingTools = "steghide binwalk dirbuster etherape ettercap-gtk john johnny scapy3k";
 
-	system( "pacman -S --noconfirm $TextEditor $AndroidHacking $NetworkHacking $BreakingTools" );
+	system( "pacman -S --noconfirm --force $TextEditor $AndroidHacking $NetworkHacking $BreakingTools" );
 }
 
 sub AddAur {
@@ -188,12 +227,32 @@ sub AurPkgs {
 	foreach ( @AUR_pkgs ) {
 		system( "sudo -u " . HackerArch::FuncHeaders::GetUsername() . " pacaur -S --noedit --noconfirm $_ " );
 	}
+
+	HackerArch::FuncHeaders::OperHeading( "Unlinking intellij-idea-UE" );
+	`unlink /usr/bin/intellij-idea-ue-bundled-jre`;
+	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
+
+	HackerArch::FuncHeaders::OperHeading( "Unlinking pycharm" );
+	`unlink \$(which pycharm)`;
+	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
+
+	HackerArch::FuncHeaders::OperHeading( "Moving intellij-idea-UE to /opt" );
+	`mv /usr/share/intellij-idea-ue-bundled-jre /opt`;
+	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
+
+	HackerArch::FuncHeaders::OperHeading( "Creating new link to intellij-idea-UE" );
+	`ln -s /opt/intellij-idea-ue-bundled-jre/bin/idea.sh /usr/local/bin/intellij-idea-ue`;
+	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
+
+	HackerArch::FuncHeaders::OperHeading( "Creating new link to pycharm" );
+	`ln -s /opt/pycharm-professional/bin/pycharm.sh /usr/local/bin/pycharm`;
+	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
 }
 
 sub AurFonts {
 	HackerArch::FuncHeaders::CategoryHeading( "Installing AUR font packages + font manager" );
 
-	my @FontPkgs = ( "font-manager" , "ttf-ms-fonts" , "nerd-fonts-git" , "ttf-google-fonts-git" , "ttf-input" );
+	my @FontPkgs = ( "font-manager" , "ttf-ms-fonts" , "nerd-fonts-git" , "ttf-google-fonts-typewolf" , "ttf-input" );
 
 	foreach ( @FontPkgs ) {
 		system( "sudo -u " . HackerArch::FuncHeaders::GetUsername() . " pacaur -S --noedit --noconfirm $_" );
@@ -223,15 +282,15 @@ sub VirtEnv {
 	}
 
 	HackerArch::FuncHeaders::OperHeading( "Adding loopback configuration to modprobe" );
-	my $FHandle = IO::File->new( "+>> /etc/modprobe.d/vmware-fuse.conf" );
+	my $FHandle = IO::File->new( ">> /etc/modprobe.d/vmware-fuse.conf" );
 	if ( defined $FHandle ) {
-		print $FHandle "options loop max_loop=256" , "\n";
+		print $FHandle "\n\n" , "options loop max_loop=256" , "\n";
 		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	HackerArch::FuncHeaders::SuccessMessage();
 
 	system( "modprobe loop" );
 

@@ -21,40 +21,46 @@ def IsDevSsd( devStr ) :
 			if line.split( ":" )[ 1 ].__contains__( "Solid State" ) :
 				return True
 			else :
-				break
-	# =============================================================================================
-	return False
+				return False
+
+
+def IsDevRemovable( devStr ) :
+	devType = os.popen( "dmesg | grep " + devStr + "| grep removable " ).readline( )
+	if not devType :
+		return False
+	else :
+		return True
 
 
 BlockDevs = os.popen( "blkid" ).readlines( )
 
-# root (ext4)  ==> defaults,block_validity,journal_checksum,user_xattr      0       1
-# boot (ext2)  ==> rw,auto,nouser,nodev,nosuid,noexec,barrier,acl           0       0
-# tmp (ext4)   ==> rw,nouser,nodev,nosuid		                        	0       0
-# home (ext4)  ==> defaults,user_xattr,i_version                            0	    2
-# swap (none)  ==> defaults
 # <dump>  == Enable or disable backing up of the device/partition (the command dump). This field is usually set to 0, which disables it.
-# <pass num> Controls the order in which fsck checks the device/partition for errors at boot time. The root device should be 1. Other partitions should be 2,
-# or 0 to disable checking.
+# <pass num> Controls the order in which fsck checks the device/partition for errors at boot time.
+#            The root device should be 1. Other partitions should be 2, or 0 to disable checking.
 
 myDevs = 0
 FstabFileDict = [ ]
 for devln in BlockDevs :
 	blkdev = devln.split( " " )[ 0 ].split( '/' )[ 2 ].strip( ":" )
+
+	if IsDevRemovable( blkdev ) :
+		continue
+
 	devSplit = BlockDeviceStringSplit( devln.strip( "\n" ) , ' ' , '=' )
 	if not str( blkdev ).__contains__( "sr" ) and not str( blkdev ).__contains__( "loop" ) :
 		if blkdev.__contains__( 'sda1' ) :
-			FstabFileDict.append( { "name"      : "boot" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/boot" ,
-			                        "type"      : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : "rw,auto,nouser,nodev,nosuid,noexec,barrier,acl" , "dump" : "0" ,
-			                        "pass"      : "0" } )
+			FstabFileDict.append( { "name" : "boot" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/boot" ,
+			                        "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : "rw,auto,nouser,nodev,nosuid,noexec,barrier,acl" , "dump" : "0" ,
+			                        "pass" : "0" } )
 		elif blkdev.__contains__( 'sda2' ) :
-			swapUUID = os.popen( 'mkswap /dev/sda2 | grep UUID | awk -F "=" "{print $2}" ' ).readline( ).strip( )
-			FstabFileDict.append( { "name" : "swap" , "UUID" : swapUUID , "mount" : "none" , "type" : "swap" , "mountopts" : "defaults" , "dump" : "0" , "pass" : "0" } )
+			res_swapmk = os.popen( 'mkswap /dev/sda2 &>/dev/null' ).readline( ).strip( )
+			swap_UUID = os.popen( """ blkid | grep swap | awk '{print $2}' | awk -F "=" '{print $2}' |  tr -d '"' """ ).readline( ).strip( '\n' )
+			FstabFileDict.append( { "name" : "swap" , "UUID" : swap_UUID , "mount" : "none" , "type" : "swap" , "mountopts" : "defaults" , "dump" : "0" , "pass" : "0" } )
 		elif blkdev.__contains__( 'sda5' ) :
 			if IsDevSsd( blkdev ) :
-				mountopts = "defaults,discard,block_validity,journal_checksum,user_xattr"
+				mountopts = "rw,discard,nodiratime"
 			else :
-				mountopts = "defaults,block_validity,journal_checksum,user_xattr"
+				mountopts = "rw,nodiratime"
 			FstabFileDict.append( { "name"      : "root" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/" , "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) ,
 			                        "mountopts" : mountopts , "dump" : "0" , "pass" : "0" } )
 		elif blkdev.__contains__( 'sda6' ) :
@@ -63,16 +69,16 @@ for devln in BlockDevs :
 			else :
 				mountopts = "rw,nouser,nodev,nosuid,noexec"
 
-			FstabFileDict.append( { "name"      : "tmp" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/tmp" ,
-			                        "type"      : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : mountopts , "dump" : "0" , "pass" : "0" } )
+			FstabFileDict.append( { "name" : "tmp" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/tmp" ,
+			                        "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : mountopts , "dump" : "0" , "pass" : "0" } )
 		elif blkdev.__contains__( 'sda7' ) :
 			if IsDevSsd( blkdev ) :
-				mountopts = "discard,defaults,user_xattr,i_version"
+				mountopts = "defaults,discard,data=journal,block_validity,journal_checksum"
 			else :
-				mountopts = "defaults,user_xattr,i_version"
+				mountopts = "defaults,data=journal,block_validity,journal_checksum"
 
-			FstabFileDict.append( { "name"      : "home" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/home" ,
-			                        "type"      : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : "defaults,user_xattr,i_version" , "dump" : "0" , "pass" : "0" } )
+			FstabFileDict.append( { "name" : "home" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/home" ,
+			                        "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : mountopts , "dump" : "0" , "pass" : "0" } )
 		elif blkdev.__contains__( 'sd' ) :
 			if IsDevSsd( blkdev ) :
 				mountopts = "discard,defaults,nodev,nosuid"

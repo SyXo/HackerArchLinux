@@ -4,8 +4,6 @@ use Exporter;
 
 
 package HackerArch::Ricing;
-use Term::ANSIColor;
-use IO::File;
 use Cwd;
 
 our $VERSION = v0.1;

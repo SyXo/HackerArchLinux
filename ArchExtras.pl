@@ -2,7 +2,6 @@
 use strict;
 use warnings 'FATAL' => 'all';
 use Cwd;
-use Term::ANSIColor;
 use IO::File;
 
 use lib sprintf( "%s/lib" , getcwd());
@@ -22,4 +21,10 @@ sub Start {
 
 BEGIN {
 	Start();
+}
+
+END {
+	HackerArch::FuncHeaders::CategoryHeading( "CONGRATULATIONS! Your system is now ready! Enjoy ))" );
+	`systemctl enable lightdm`;
+	HackerArch::FuncHeaders::CategoryFooter( "That's it folks." );
 }

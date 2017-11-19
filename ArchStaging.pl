@@ -2,7 +2,6 @@
 use strict;
 use warnings 'FATAL' => 'all';
 use Cwd;
-use Term::ANSIColor;
 use IO::File;
 
 use lib sprintf( "%s/lib" , getcwd());
@@ -10,9 +9,9 @@ use HackerArch::FuncHeaders qw( :ALL );
 use HackerArch::Staging qw( :ALL );
 
 sub Start {
+
 	HackerArch::Staging::InitSystem();
-	HackerArch::Staging::RemoveEntryPoint();
-	HackerArch::Staging::ReflectorPacmanUpdate( sprintf( "%s/staging/pacman.conf" , getcwd()));
+	HackerArch::Staging::AdjustUpdatePacman( sprintf( "%s/staging/pacman.conf" , getcwd()));
 	HackerArch::Staging::StageInstall();
 	HackerArch::Staging::BuildFstab();
 
@@ -47,8 +46,12 @@ sub BashrcConfs {
 	my @bashrc;
 	if ( defined $FHandle ) {
 		@bashrc = <$FHandle>;
+		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
-	$FHandle->close;
+	else {
+		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
+	}
 
 	HackerArch::FuncHeaders::OperHeading( "Writing to " . HackerArch::FuncHeaders::GetUsername() . "'s profile bashrc" );
 
@@ -61,13 +64,14 @@ sub BashrcConfs {
 		print $FHandle 'RETVAL=$?' , "\n";
 		print $FHandle '[ $RETVAL -ne 0 ] && echo "$RETVAL" ' , "\n";
 		print $FHandle '}' , "\n\n";
-		print $FHandle 'export PS1="\A |> \u @ \w [\`nonzero_return\`]:\\\$ " ' , "\n";
+		print $FHandle 'export PS1="$BCyan \A |> \u @ \w [\`nonzero_return\`]:\\\$ $COLOR_RESET" ' , "\n";
+
+		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::SuccessMessage();
 
 	HackerArch::FuncHeaders::OperHeading( "Writing to root's profile bashrc" );
 	$FHandle = IO::File->new( "+> /root/.bashrc" );
@@ -79,35 +83,30 @@ sub BashrcConfs {
 		print $FHandle 'RETVAL=$?' , "\n";
 		print $FHandle '[ $RETVAL -ne 0 ] && echo "$RETVAL" ' , "\n";
 		print $FHandle '}' , "\n\n";
-		print $FHandle 'export PS1="\A |> \u @ \w [\`nonzero_return\`]:\\\$ " ' , "\n";
+		print $FHandle 'export PS1="$BRed \A |> \u @ \w [\`nonzero_return\`]:\\\$ $COLOR_RESET" ' , "\n";
+
 		$FHandle->close();
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	HackerArch::FuncHeaders::SuccessMessage();
 
+	HackerArch::FuncHeaders::OperHeading( 'Sourcing root\'s bashrc profile file' );
 	`source ~/.bashrc`;
-	HackerArch::FuncHeaders::CategoryFooter( 'root\'s bashrc file has been successfully source and can now add install entry point.' );
+	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
 }
 
 
 BEGIN {
+	HackerArch::Setup::RemoveStagingAutostart();
+
 	Start();
 	HardeningSystem();
 	BashrcConfs();
 }
 
 END{
-	my $FHandle = IO::File->new( "+> /etc/issue " );
-	if ( defined $FHandle ) {
-		print $FHandle "Please login as root for the install to coninue ..." , "\n";
-	}
-	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
-	}
-	$FHandle->close;
-
 	my $msg = 'This completes the new system install - base configuration and NO [UI]!' . "\n\n";
 	$msg .= 'This script is now closed and you need to manually type "exit" in order to continue.';
 

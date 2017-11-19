@@ -4,15 +4,14 @@ use Exporter qw( import );
 
 
 package HackerArch::Staging;
-use Term::ANSIColor;
 use Cwd;
 use IO::File;
 
 our $VERSION = v0.1;
 our @ISA = qw( Exporter );
 our @EXPORT = ();
-our @EXPORT_OK = qw( InitSystem ReflectorPacmanUpdate StageInstall BuildFstab RemoveEntryPoint InsertInstallEntryPoint );
-our %EXPORT_TAGS = ( 'ALL' => [ qw( &InitSystem &ReflectorPacmanUpdate &StageInstall &BuildFstab &RemoveEntryPoint &InsertInstallEntryPoint ) ] );
+our @EXPORT_OK = qw( InitSystem AdjustUpdatePacman StageInstall BuildFstab );
+our %EXPORT_TAGS = ( 'ALL' => [ qw( &InitSystem &AdjustUpdatePacman &StageInstall &BuildFstab ) ] );
 
 our ($username);
 
@@ -24,11 +23,13 @@ sub InitSystem {
 	my $FHandle = IO::File->new( "+> /etc/locale.gen" );
 	if ( defined $FHandle ) {
 		print $FHandle "en_US.UTF-8 UTF-8" , "\n";
+		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
+
 	`locale-gen &>/dev/null`;
 	HackerArch::FuncHeaders::CheckReturn( 1 , "Setup cannot proceed without establishing locale." );
 
@@ -36,12 +37,11 @@ sub InitSystem {
 	$FHandle = IO::File->new( "+> /etc/locale.conf" );
 	if ( defined $FHandle ) {
 		print $FHandle "LANG=en_US.UTF-8" , "\n";
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::SuccessMessage();
 
 	#    set timezone link
 	HackerArch::FuncHeaders::OperHeading( "Establishing timezone for local time ..." );
@@ -62,22 +62,22 @@ sub InitSystem {
 	$FHandle = IO::File->new( "+> /etc/hostname" );
 	if ( defined $FHandle ) {
 		print $FHandle "$hostname" , "\n";
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
 
 	HackerArch::FuncHeaders::OperHeading( "Adding recursive hostname for hosts file" );
 	$FHandle = IO::File->new( "+>> /etc/hosts" );
 	if ( defined $FHandle ) {
 		print $FHandle "127.0.1.1" , "\t" , "localhost.localdomain" , "\t" , "$hostname" , "\n";
+		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
 
 	#	passwd root (create new root passwd)
 	HackerArch::FuncHeaders::OperTitle( "Please change the default root password:" );
@@ -92,7 +92,7 @@ sub InitSystem {
 	`systemctl enable dhcpcd`;
 }
 
-sub ReflectorPacmanUpdate {
+sub AdjustUpdatePacman {
 	if ( ( $#_ + 1 ) != 1 ) {
 		HackerArch::FuncHeaders::ErrorOutMessage( 1 , "Reflector func must get input arg of pacman.conf" );
 	}
@@ -128,22 +128,23 @@ sub StageInstall {
 	HackerArch::FuncHeaders::OperHeading( "ReWriting sudoers - uncommenting sudo group for root access" );
 	my $FHandle = IO::File->new( "+> /etc/sudoers " );
 	if ( defined $FHandle ) {
-		print $FHandle "##" , "\n";
-		print $FHandle "## User privilege specification" , "\n";
-		print $FHandle "##" , "\n";
+		print $FHandle "#======================================" , "\n";
+		print $FHandle "#        User privilege specification" , "\n";
+		print $FHandle "#======================================" , "\n";
 		print $FHandle "root ALL=(ALL) ALL" , "\n\n";
-		print $FHandle "## Uncomment to allow members of group wheel to execute any command" , "\n";
+		print $FHandle "#== Uncomment to allow members of group wheel to execute any command" , "\n";
 		print $FHandle "%wheel ALL=(ALL) ALL" , "\n\n";
-		print $FHandle "## Same thing without a password" , "\n";
+		print $FHandle "#== Same thing without a password" , "\n";
 		print $FHandle "# %wheel ALL=(ALL) NOPASSWD: ALL" , "\n\n";
-		print $FHandle "## Uncomment to allow members of group sudo to execute any command" , "\n";
+		print $FHandle "#== Uncomment to allow members of group sudo to execute any command" , "\n";
 		print $FHandle "# %sudo ALL=(ALL) ALL" , "\n";
+
+		$FHandle->close;
+		HackerArch::FuncHeaders::SuccessMessage();
 	}
 	else {
 		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::SuccessMessage();
 
 	#    add new regular (restricted user)
 	HackerArch::FuncHeaders::UserInput( "Please enter new username" );
@@ -177,67 +178,9 @@ sub BuildFstab {
 	HackerArch::FuncHeaders::CategoryHeading( "Generating and configuring new fstab file" );
 
 	HackerArch::FuncHeaders::OperHeading( "Creating fstab - with hardened mount points" );
-	# root (ext4)  ==> defaults,block_validity,journal_checksum,user_xattr      1       1
-	# boot (ext2)  ==> rw,auto,nouser,nodev,nosuid,noexec,barrier,acl           0       0
-	# tmp (ext4)   ==> rw,nouser,nodev,nosuid		                        	0       0
-	# home (ext4)  ==> defaults,user_xattr,i_version                            0	    2
 
 	system( "python2 " . getcwd() . "/lib/HackerArch/BuildFstab.py" );
 	HackerArch::FuncHeaders::CheckReturn( 1 , "Your disk won't boot into your new system without fstab!" )
-}
-
-sub RemoveEntryPoint {
-	HackerArch::FuncHeaders::CategoryHeading( "Removing the staging autostart-/entry- point" );
-
-	HackerArch::FuncHeaders::OperHeading( "Reading file" );
-	my $FHandle = IO::File->new( "< /etc/bash.bashrc" );
-	my @bashrc;
-	if ( defined $FHandle ) {
-		@bashrc = <$FHandle>;
-	}
-	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file . " );
-	}
-	$FHandle->close;
-
-	HackerArch::FuncHeaders::SuccessMessage();
-
-	for ( 1 .. 4 ) {
-		print "pop ";
-		pop @bashrc;
-	}
-	print "\n";
-
-	HackerArch::FuncHeaders::OperHeading( "Writing back to file" );
-	$FHandle = IO::File->new( "+> /etc/bash.bashrc" );
-	if ( defined $FHandle ) {
-		foreach( @bashrc ) {
-			print $FHandle $_;
-		}
-		print $FHandle "\n";
-
-	}
-	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file . " );
-	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::SuccessMessage();
-
-	HackerArch::FuncHeaders::CategoryFooter( "Successfully removed staging entry point . " );
-}
-
-sub InsertInstallEntryPoint {
-	HackerArch::FuncHeaders::CategoryHeading( 'Adding "install" entry point for after reboot' );
-
-	my $FHandle = IO::File->new( "+> /root/.extend.bashrc" );
-	if ( defined $FHandle ) {
-		print $FHandle "perl ~/MikiArchInstall.pl" , "\n";
-	}
-	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
-	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::SuccessMessage();
 }
 
 1;

@@ -4,14 +4,13 @@ use Exporter qw( import );
 
 
 package HackerArch::Init;
-use Term::ANSIColor;
 use Net::Ping;
 
 our $VERSION = v0.1;
 our @ISA = qw( Exporter );
 our @EXPORT = ();
-our @EXPORT_OK = qw( VerifyConnectivity VerifyDiskPrep SystemMount Pacstrap InsertStagingEntryPoint );
-our %EXPORT_TAGS = ( 'ALL' => [ qw( &VerifyConnectivity &VerifyDiskPrep &SystemMount &Pacstrap &InsertStagingEntryPoint ) ] );
+our @EXPORT_OK = qw( VerifyConnectivity VerifyDiskPrep SystemMount Pacstrap );
+our %EXPORT_TAGS = ( 'ALL' => [ qw( &VerifyConnectivity &VerifyDiskPrep &SystemMount &Pacstrap ) ] );
 
 
 sub VerifyConnectivity {
@@ -30,7 +29,7 @@ sub VerifyDiskPrep {
 
 	unless ( -e "/dev/sda1" && -e "/dev/sda2" && -e "/dev/sda5" && -e "/dev/sda6" && -e "/dev/sda7" ) {
 		my $errormsg = "You have not properly partitioned the primary disk as expected!  \n";
-		$errormsg += "Please refer to the README for further instructions.";
+		$errormsg .= "Please refer to the README for further instructions.";
 		HackerArch::FuncHeaders::ErrorOutMessage( 1 , $errormsg );
 	}
 	HackerArch::FuncHeaders::SuccessMessage();
@@ -87,13 +86,13 @@ sub Pacstrap {
 	system( 'pacman -Syy' );
 
 	HackerArch::FuncHeaders::CategoryHeading( "PACSTRAP install to your system root" );
-	my $BasePkgs1 = "acpid autoconf automake bash binutils bison bzip2 coreutils cryptsetup device-mapper diffutils fakeroot file filesystem findutils flex gawk";
+	my $BasePkgs1 = "acpid autoconf automake bash bash-completion binutils bison bzip2 coreutils cryptsetup device-mapper diffutils fakeroot file filesystem findutils flex gawk";
 	my $BasePkgs2 = "gettext glibc grep groff gzip htop inetutils less libtool licenses logrotate lvm2 m4 make man-db man-pages mdadm pacman patch pciutils perl pkg-config";
 	my $BasePkgs3 = "procps-ng psmisc sed shadow sudo sysfsutils systemd systemd-sysvcompat texinfo usbutils util-linux vim which";
 	my $MainPkgs = "gcc-multilib gcc-libs-multilib linux-lts linux-lts-headers";
 
 	#connectivity
-	my $Networking = "dnsmasq dhclient dhcpcd iproute2 iptables iputils netctl rsync curl git wget";
+	my $Networking = "dnsmasq dhclient dhcpcd iproute2 iptables iputils netctl net-tools rsync curl git wget";
 
 	#wireless
 	my $BaseWifi = "crda easy-rsa wpa_supplicant";
@@ -105,23 +104,6 @@ sub Pacstrap {
 	my $Utils = "python2 python python2-pip python-pip hdparm hwinfo hwloc lshw lsof sysstat smartmontools tar zip unzip p7zip lzop cpio unrar unace";
 
 	system( "pacstrap /mnt --config=$args[0] --cachedir=\"/mnt/var/cache/pacman/\" --logfile=\"/mnt/var/log/pacman.log\" $BasePkgs1 $BasePkgs2 $BasePkgs3 $MainPkgs $Networking $BaseWifi $BaseFs $Utils" );
-}
-
-sub InsertStagingEntryPoint {
-	HackerArch::FuncHeaders::CategoryHeading( 'Adding "install" entry point in the new system' );
-
-	HackerArch::FuncHeaders::OperHeading( "Writing to file" );
-	my $FHandle = IO::File->new( "+>> /mnt/etc/bash.bashrc" );
-	if ( defined $FHandle ) {
-		print $FHandle "\n\n";
-		print $FHandle "cd /root" , "\n";
-		print $FHandle "perl MikiArchStaging.pl" , "\n";
-	}
-	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
-	}
-	$FHandle->close;
-	HackerArch::FuncHeaders::SuccessMessage();
 }
 
 1;

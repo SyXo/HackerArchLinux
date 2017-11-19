@@ -54,7 +54,7 @@ sub CategoryFooter {
 }
 
 sub OperTitle {
-	print color( "bold yellow" );
+	print color( "bold cyan" );
 	print $_[0] , "... \n";
 	print color( "reset" );
 }
@@ -73,13 +73,13 @@ sub UserInput {
 
 sub SuccessMessage {
 	print color( "bold green" );
-	print "SUCCESS!!" , "\n\n";
+	print "SUCCESS!" , "\n\n";
 	print color( "reset" );
 }
 
 sub ErrorOutMessage {
 	print color( "bold red" );
-	print "FAILED!!" , "\n";
+	print "FAILED!" , "\n";
 	print "$_[1]" , "\n";
 	print color( "reset" );
 

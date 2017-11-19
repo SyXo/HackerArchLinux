@@ -22,7 +22,7 @@ u = urllib.urlopen( linkUrl )
 meta = u.info( )
 file_size = int( meta.getheaders( "Content-Length" )[ 0 ] )
 
-print "Downloading %s bytes..." % file_size ,
+print "%s bytes..." % file_size ,
 f = open( "firefox.tar.bz2" , 'wb' )
 
 blockSize = 8192  # 100000 # urllib.urlretrieve uses 8192
