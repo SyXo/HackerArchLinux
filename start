@@ -1,3 +1,12 @@
 #!/bin/bash
 
+pacman -Syy
+pacman -S --noconfirm autoconf automake make pkg-config perl-libwww
+
+cd lib/ConsolePrintTemplates
+make
+make install
+
+cd ../..
+
 perl Arch.pl

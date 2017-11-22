@@ -4,8 +4,12 @@ use Exporter;
 
 
 package HackerArch::Install;
+use HackerArch::Setup;
+require ConsolePrintTemplates;
 use IO::File;
 use Cwd;
+use WWW::Mechanize;
+use LWP::UserAgent;
 
 our $VERSION = v0.1;
 our @ISA = qw( Exporter );
@@ -15,13 +19,13 @@ our %EXPORT_TAGS = ( 'ALL' => [ qw( &UpdateDnsServers &InitUsermode &InstallFire
 
 
 sub UpdateDnsServers {
-	HackerArch::FuncHeaders::OperHeading( "Replacing DNS servers for faster response" );
+	ConsolePrintTemplates::OperHeading( "Replacing DNS servers for faster response" );
 	system( "cp  " . getcwd() . " /install/resolv.conf /etc/resolv.conf " );
-	HackerArch::FuncHeaders::CheckReturn( 0 , "DNS server are defaulted through your DHCP server" );
+	ConsolePrintTemplates::CheckReturn( 0 , "DNS server are defaulted through your DHCP server" );
 }
 
 sub InitUsermode {
-	HackerArch::FuncHeaders::CategoryHeading( " Initializing usermode - adding graphically interface (Xorg) + Gnome packages " );
+	ConsolePrintTemplates::CategoryHeading( " Initializing usermode - adding graphically interface (Xorg) + Gnome packages " );
 
 	my $Xserver = " libglvnd xorg-server xorg-server-common mesa mesa-vdpau libvdpau libva-vdpau-driver libvdpau-va-gl xf86-video-intel ";
 	my $XserverUtils = " libx264 xorg-xrandr xorg-xinput xorg-xev xorg-xbacklight xorg-xkill xorg-xprop xorg-xinit xorg-mkfontdir xorg-fonts-75dpi xorg-fonts-100dpi ";
@@ -30,17 +34,17 @@ sub InitUsermode {
 	my $UserEnvUtils1 = " gnome-control-center gnome-system-monitor gnome-nettool gparted gnome-disk-utility file-roller gnome-calendar gnome-logs gnome-todo gnome-calculator  ";
 	$UserEnvUtils1 .= " baobab eog evince grilo grilo-plugins gucharmap gvfs gvfs-smb ";
 
-	my $Networking = " networkmanager nm-connection-editor networkmanager-openvpn blueman bluez bluez-tools bluez-utils opernssh ";
+	my $Networking = " networkmanager nm-connection-editor networkmanager-openvpn blueman bluez bluez-tools bluez-utils openssh ";
 
 	system( " pacman -S --noconfirm --needed $Xserver $XserverUtils " );
 	system( " pacman -S --noconfirm --needed $DeskMgr " );
 	system( " pacman -S --noconfirm --needed $Networking $UserEnvUtils1 " );
 
-	HackerArch::FuncHeaders::OperTitle( " Installing and changing default shell to ZSH " );
+	ConsolePrintTemplates::OperTitle( " Installing and changing default shell to ZSH " );
 	system( " pacman -S --noconfirm zsh zsh-completions zsh-syntax-highlighting zsh-theme-powerlevel9k powerline2 powerline-common powerline-vim " );
 
 	system( " chsh -s /usr/bin/zsh root " );
-	system( " chsh -s /usr/bin/zsh  " . HackerArch::FuncHeaders::GetUsername());
+	system( " chsh -s /usr/bin/zsh  " . ConsolePrintTemplates::GetUsername());
 
 	my $SysBaseFont = " ttf-ubuntu-font-family  ";
 	my $Internet = " chromium flashplugin pepper-flash opera ";
@@ -59,63 +63,63 @@ sub InitUsermode {
 	my $Dbs = " postgresql postgresql-libs pgadmin4 php-pgsql phppgadmin php-sqlite ";
 	my $ExtdPythonLibraries = " python-yaml python-psutil python-regex python-pillow python-qrencode python-pytools python-logbook python-pygithub python-billiard python-requests ";
 	$ExtdPythonLibraries .= " python-mysql-connector python-simplejson python-pycryptodomex python-twisted python-numpy python-ptrace python-capstone ";
-	my $PerlBasics = " perl-yaml perl-tidy perl-libwww perl-www-curl perl-www-mechanize perl-lwp-protocol-https ";
+	my $PerlBasics = " perl-yaml perl-tidy perl-lwp-protocol-https";
 
-	HackerArch::FuncHeaders::OperTitle( " Installing complete environment - all necessary user packages " );
+	ConsolePrintTemplates::OperTitle( " Installing complete environment - all necessary user packages " );
 	system( "pacman -S --noconfirm --needed $SysBaseFont $Internet $fileMgr $fileIndexer $TorrClient $Utils $Editors $AudioPkgs $VidPkgs $VidCodecs $Android $PicEditor " );
 	system( "pacman -S --noconfirm --needed $WebTech $Dbs $ExtdPythonLibraries $PerlBasics " );
 
-	HackerArch::FuncHeaders::OperTitle( " Install python module (extension for zsh) - thefuck " );
+	ConsolePrintTemplates::OperTitle( " Install python module (extension for zsh) - thefuck " );
 	system( "pip3 install thefuck " );
 }
 
 sub InstallFirefoxESR {
-	HackerArch::FuncHeaders::CategoryHeading( "Installing Firefox ESR edition to system " );
+	ConsolePrintTemplates::CategoryHeading( "Installing Firefox ESR edition to system " );
 
-	HackerArch::FuncHeaders::OperTitle( "Downloading file " );
-	system( "python2  " . getcwd() . " /lib/HackerArch/FirefoxEsr.py " );
-	HackerArch::FuncHeaders::CheckReturn( 0 , "  " );
+	my $url = "https://download.mozilla.org/?product=firefox-esr-latest-ssl&amp;os=linux64&amp;lang=en-US";
+	my $FileSaveto = getcwd() . "/install/firefox/firefox.tar.bz2";
+	HackerArch::Setup::DownloadFile( $url , $FileSaveto );
 
-	HackerArch::FuncHeaders::OperTitle( "Extracting contents of download " );
-	`tar --extract -f firefox.tar.bz2 --overwrite --directory=/opt/ &>/dev/null`;
-	HackerArch::FuncHeaders::CheckReturn( 0 , "Firefox was not successfully added to your system " );
+	ConsolePrintTemplates::OperTitle( "Extracting contents of download " );
+	system( "tar --extract -f $FileSaveto --overwrite --directory=/opt/ 1>/dev/null 2>&1 " );
+	ConsolePrintTemplates::CheckReturn( 0 , "Firefox was not successfully added to your system " );
 
 	if ( "$?" == 0 ) {
-		HackerArch::FuncHeaders::OperTitle( " Installing Firefox symlink " );
+		ConsolePrintTemplates::OperTitle( " Installing Firefox symlink " );
 		`ln -s /opt/firefox/firefox /usr/local/bin/firefox`;
-		HackerArch::FuncHeaders::CheckReturn( 0 , " Firefox was not successfully installed " );
+		ConsolePrintTemplates::CheckReturn( 0 , " Firefox was not successfully installed " );
 	}
 }
 
 sub InstallVirtBox {
-	HackerArch::FuncHeaders::CategoryHeading( "Installing VirtualBox" );
+	ConsolePrintTemplates::CategoryHeading( "Installing VirtualBox" );
 	system( "pacman -S --noconfirm virtualbox virtualbox-guest-iso virtualbox-host-dkms" );
 
-	HackerArch::FuncHeaders::CheckReturn( 0 , "VirtualBox WAS NOT installed!" );
+	ConsolePrintTemplates::CheckReturn( 0 , "VirtualBox WAS NOT installed!" );
 }
 
 sub AddGdbAsm {
-	HackerArch::FuncHeaders::CategoryHeading( "Installing GDB + Peda for GDB" );
+	ConsolePrintTemplates::CategoryHeading( "Installing GDB + Peda for GDB" );
 	system( "pacman -S --noconfirm gdb nasm yasm" );
 
-	HackerArch::FuncHeaders::OperHeading( "Creating directory for Peda" );
-	system( " mkdir -p /home/" . HackerArch::FuncHeaders::GetUsername() . "/.peda  &>/dev/null " );
-	HackerArch::FuncHeaders::CheckReturn( 0 , "" );
+	ConsolePrintTemplates::OperHeading( "Creating directory for Peda" );
+	system( " mkdir -p /home/" . ConsolePrintTemplates::GetUsername() . "/.peda  &>/dev/null " );
+	ConsolePrintTemplates::CheckReturn( 0 , "" );
 
-	HackerArch::FuncHeaders::OperTitle( "Git clone peda to formerly-created directory" );
-	system( "git clone https://github.com/longld/peda.git /home/" . HackerArch::FuncHeaders::GetUsername() . "/.peda " );
-	HackerArch::FuncHeaders::CheckReturn( 0 , "  " );
+	ConsolePrintTemplates::OperTitle( "Git clone peda to formerly-created directory" );
+	system( "git clone https://github.com/longld/peda.git /home/" . ConsolePrintTemplates::GetUsername() . "/.peda " );
+	ConsolePrintTemplates::CheckReturn( 0 , "  " );
 
-	HackerArch::FuncHeaders::OperTitle( "Adding peda autostart entry point for gdb" );
-	my $FHandle = IO::File->new( " +> /home/" . HackerArch::FuncHeaders::GetUsername() . "/.gdbinit" );
+	ConsolePrintTemplates::OperTitle( "Adding peda autostart entry point for gdb" );
+	my $FHandle = IO::File->new( " +> /home/" . ConsolePrintTemplates::GetUsername() . "/.gdbinit" );
 	if ( defined $FHandle ) {
-		print $FHandle  "source /home/" . HackerArch::FuncHeaders::GetUsername() . "/.peda/peda.py" , "\n";
+		print $FHandle  "source /home/" . ConsolePrintTemplates::GetUsername() . "/.peda/peda.py" , "\n";
 
 		$FHandle->close;
-		HackerArch::FuncHeaders::SuccessMessage();
+		ConsolePrintTemplates::SuccessMessage();
 	}
 	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
+		ConsolePrintTemplates::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
 
 }
@@ -130,10 +134,10 @@ sub Nvidia {
 		print $FHandle  "alias nouveau off" , "\n";
 
 		$FHandle->close;
-		HackerArch::FuncHeaders::SuccessMessage();
+		ConsolePrintTemplates::SuccessMessage();
 	}
 	else {
-		HackerArch::FuncHeaders::ErrorOutMessage( 0 , "Cannot write to file." );
+		ConsolePrintTemplates::ErrorOutMessage( 0 , "Cannot write to file." );
 	}
 
 }

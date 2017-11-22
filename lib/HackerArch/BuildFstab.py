@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import sys
 
 
 def BlockDeviceStringSplit( MyString , primDelim , secDelim ) :
@@ -32,6 +33,11 @@ def IsDevRemovable( devStr ) :
 		return True
 
 
+if int( sys.argv[ 1 ] ) == 1 :
+	tmpMountOpts = "rw,nouser,nodev,nosuid"
+else :
+	tmpMountOpts = "rw,nouser,nodev,nosuid,noexec"
+
 BlockDevs = os.popen( "blkid" ).readlines( )
 
 # <dump>  == Enable or disable backing up of the device/partition (the command dump). This field is usually set to 0, which disables it.
@@ -62,10 +68,10 @@ for devln in BlockDevs :
 			else :
 				mountopts = "rw,nodiratime"
 			FstabFileDict.append( { "name"      : "root" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/" , "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) ,
-			                        "mountopts" : mountopts , "dump" : "0" , "pass" : "0" } )
+			                        "mountopts" : mountopts , "dump" : "0" , "pass" : "1" } )
 		elif blkdev.__contains__( 'sda6' ) :
 			if IsDevSsd( blkdev ) :
-				mountopts = "discard,rw,nouser,nodev,nosuid,noexec"
+				mountopts = "discard," + tmpMountOpts
 			else :
 				mountopts = "rw,nouser,nodev,nosuid,noexec"
 
@@ -78,12 +84,12 @@ for devln in BlockDevs :
 				mountopts = "defaults,data=journal,block_validity,journal_checksum"
 
 			FstabFileDict.append( { "name" : "home" , "UUID" : str( devSplit[ 'UUID' ] ).strip( '"' ) , "mount" : "/home" ,
-			                        "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : mountopts , "dump" : "0" , "pass" : "0" } )
+			                        "type" : str( devSplit[ 'TYPE' ] ).strip( '"' ) , "mountopts" : mountopts , "dump" : "0" , "pass" : "2" } )
 		elif blkdev.__contains__( 'sd' ) :
 			if IsDevSsd( blkdev ) :
-				mountopts = "discard,defaults,nodev,nosuid"
+				mountopts = "discard,".join( tmpMountOpts )
 			else :
-				mountopts = "defaults,nodev,nosuid"
+				mountopts = tmpMountOpts
 
 			myDevs += 1
 			try :

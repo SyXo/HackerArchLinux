@@ -5,20 +5,16 @@ use Term::ANSIColor;
 use IO::File;
 use Cwd;
 
+require ConsolePrintTemplates;
 use lib sprintf( "%s/lib" , getcwd());
-use HackerArch::FuncHeaders qw( :ALL );
 use HackerArch::Init qw( :ALL );
 use HackerArch::Setup qw( :ALL );
 
 
 sub Start {
-	HackerArch::Init::VerifyConnectivity();
+	HackerArch::Init::VerifyUpgradeConnectivity();
 	HackerArch::Init::VerifyDiskPrep();
 	HackerArch::Init::SystemMount();
-
-	`pacman -S --noconfirm reflector`;
-	`reflector --verbose --latest 50 --protocol https --sort rate --save /etc/pacman.d/mirrorlist`;
-
 	HackerArch::Init::Pacstrap( getcwd() . "/init/pacman.conf" );
 }
 
@@ -40,7 +36,7 @@ BEGIN{
 	HackerArch::Setup::CodeCopy();
 	HackerArch::Setup::AddStagingAutostart();
 
-	HackerArch::FuncHeaders::CategoryHeading( "Chroot into new system" );
+	ConsolePrintTemplates::CategoryHeading( "Chroot into new system" );
 	system( "arch-chroot /mnt" );
 }
 

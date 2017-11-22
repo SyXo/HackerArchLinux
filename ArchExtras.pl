@@ -4,8 +4,8 @@ use warnings 'FATAL' => 'all';
 use Cwd;
 use IO::File;
 
+require ConsolePrintTemplates;
 use lib sprintf( "%s/lib" , getcwd());
-use HackerArch::FuncHeaders qw( :ALL );
 use HackerArch::ExtrasInstall qw( :ALL );
 
 
@@ -24,7 +24,9 @@ BEGIN {
 }
 
 END {
-	HackerArch::FuncHeaders::CategoryHeading( "CONGRATULATIONS! Your system is now ready! Enjoy ))" );
+	ConsolePrintTemplates::CategoryHeading( "CONGRATULATIONS! Your system is now ready! Enjoy ))" );
 	`systemctl enable lightdm`;
-	HackerArch::FuncHeaders::CategoryFooter( "That's it folks." );
+	ConsolePrintTemplates::CategoryFooter( "That's it folks." );
+
+	system( "chown -R " . ConsolePrintTemplates::GetUsername() . ":users /home/" . ConsolePrintTemplates::GetUsername());
 }

@@ -24,12 +24,12 @@ LogLevel VERBOSE
 AllowGroups sshusers
 
 #LoginGraceTime 2m
-PermitRootLogin no
+PermitRootLogin yes
 StrictModes yes
 MaxAuthTries 3
 MaxSessions 4
 
-PubkeyAuthentication yes
+PubkeyAuthentication no
 #_____________________________________________________________________________ DEFAULT files
 #        .ssh/authorized_keys       &&     .ssh/authorized_keys2
 #_____________________________________________________________________________
@@ -49,7 +49,7 @@ IgnoreRhosts yes
 
 # To disable tunneled clear text passwords, change to no here!
 PermitEmptyPasswords no
-PasswordAuthentication no
+PasswordAuthentication yes
 
 # Change to no to disable s/key passwords
 ChallengeResponseAuthentication no

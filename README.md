@@ -53,11 +53,14 @@
 - [ ] **Create logging sqlitedb - tracking each operation as successful or failed**
 - [ ] Ask if there are previously created home dir and mount without format
 - [ ] netctl for wifi carry-over to new system
-- [ ] Add metasploit , BT3 (BlueTeam Training Toolkit)
+- [ ] Add metasploit , BT3 (BlueTeam Training Toolkit) installs
 - [ ] Finish auto-ricing ; chown , chmod to home dir
 - [ ] Add one-time install of zim + vundle inside UI
 - [ ] Build xrandr monitor line from properties ; add to lightdm & i3 config files
+- [ ] Build sshd profile (moduli)
 - [ ] Clean files and folders created along install process
+- [ ] Encrypted "home" directory LLVM; password protected GRUB edits
+- [ ] System cleanup script (.cache/{makepkg,pacaur})
 - [x] Fix: bugs in BuildFstab.py - verify drives ; mkswap
 - [x] ReWrite the Blackarch install script into Perl (error-proofing)
 - [x] Finish automation (staing -> install -> extras)
